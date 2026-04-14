@@ -1,0 +1,1858 @@
+-- ////////////////////////////////////////////
+-- /// CONFIGURATION                        ///
+-- ////////////////////////////////////////////
+
+local REQUIRED_KEY = "6B4oX8hRV0E6eG3SUE/jYqUZGe3AHLFUQTCI2O7OZvE="
+local GET_KEY_LINK = "https://shrinkme.click/AlexionClientV1Key"
+local isAuthenticated = false
+
+local MENU_TOGGLE_KEY = Enum.KeyCode.F2 
+local PROMPT_TOGGLE_KEY = Enum.KeyCode.F1 
+local AIMBOT_TOGGLE_KEY = Enum.KeyCode.F3
+
+-- Purchase Prompt Config
+local CURRENT_BALANCE = 105156  
+local ITEM_PRICE = 100 
+local LOAD_TIME = 3 
+local ITEM_NAMES = {"Pls donate", "Thanks", "i love you", "you the best", "OMG"}
+
+-- Verified Tag Config
+local VERIFIED_BADGE_CHAR = " "
+local CurrentTagName = "VerifiedUser" 
+
+-- Profile Config
+local CREATOR_USER_ID = 10699003876
+local CREATOR_LINK = "https://www.roblox.com/users/"..tostring(CREATOR_USER_ID).."/profile"
+
+-- Fly & Aimbot Config
+local FLY_SPEED = 50
+local AIMBOT_PART = "Head"
+local AIMBOT_SENSITIVITY = 0.2
+
+-- Outfit Saver Config
+local FILE_NAME = "AlexionSavedOutfit.txt"
+local headlessEnabled = false
+local cloneActive = false
+local defaultAnims = {}
+
+-- ////////////////////////////////////////////
+-- /// SERVICES & VARIABLES                 ///
+-- ////////////////////////////////////////////
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+local UserService = game:GetService("UserService")
+local VirtualUser = game:GetService("VirtualUser")
+local CoreGui = game:GetService("CoreGui")
+local VIM = game:GetService("VirtualInputManager") -- Added for Ragebait
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerMouse = LocalPlayer:GetMouse()
+local Camera = workspace.CurrentCamera
+
+-- ULTRA-SAFE GUI PARENTING
+local guiParent = nil
+local function getSafeGuiParent()
+    local s, result = pcall(function()
+        if gethui then return gethui() end
+    end)
+    if s and result then return result end
+
+    s, result = pcall(function()
+        return game:GetService("CoreGui")
+    end)
+    if s and result then return result end
+
+    return LocalPlayer:WaitForChild("PlayerGui")
+end
+guiParent = getSafeGuiParent()
+
+local function formatBalance(num)
+    local thousands = math.floor(num / 1000)
+    local remainder = num % 1000
+    return string.format("%d.%03d", thousands, remainder)
+end
+
+-- // SOUND EFFECTS //
+local ClickSound = Instance.new("Sound")
+ClickSound.SoundId = "rbxassetid://4740645854" 
+ClickSound.Volume = 1
+pcall(function() ClickSound.Parent = game:GetService("SoundService") end)
+
+local function playClick()
+    pcall(function() ClickSound:Play() end)
+end
+
+-- ////////////////////////////////////////////
+-- /// 1. NEW MODERN HUB (ALPINE STYLE)     ///
+-- ////////////////////////////////////////////
+
+if guiParent:FindFirstChild("AlexionClientModernHub") then 
+    guiParent.AlexionClientModernHub:Destroy() 
+end
+
+local HubGui = Instance.new("ScreenGui")
+HubGui.Name = "AlexionClientModernHub"
+HubGui.ResetOnSpawn = false
+HubGui.Parent = guiParent
+
+-- /// KEY SYSTEM LOGIC (ALPINE THEMED) ///
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Size = UDim2.new(0, 320, 0, 190)
+KeyFrame.Position = UDim2.new(0.5, -160, 0.5, -95)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(15, 16, 26) -- Alpine Dark
+KeyFrame.BorderSizePixel = 0
+KeyFrame.Parent = HubGui
+Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 12)
+
+local KeyTitle = Instance.new("TextLabel")
+KeyTitle.Text = "🏔️ Alexion Authentication"
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.TextSize = 16
+KeyTitle.TextColor3 = Color3.fromRGB(230, 230, 240)
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Position = UDim2.new(0, 0, 0, 15)
+KeyTitle.Size = UDim2.new(1, 0, 0, 30)
+KeyTitle.Parent = KeyFrame
+
+local KeyInput = Instance.new("TextBox")
+KeyInput.Size = UDim2.new(0, 280, 0, 40)
+KeyInput.Position = UDim2.new(0.5, -140, 0, 65)
+KeyInput.BackgroundColor3 = Color3.fromRGB(28, 30, 48)
+KeyInput.TextColor3 = Color3.new(1, 1, 1)
+KeyInput.PlaceholderText = "Enter License Key"
+KeyInput.Text = ""
+KeyInput.Font = Enum.Font.Gotham
+KeyInput.TextSize = 13
+KeyInput.ClearTextOnFocus = false
+Instance.new("UICorner", KeyInput).CornerRadius = UDim.new(0, 8)
+KeyInput.Parent = KeyFrame
+
+local VerifyBtn = Instance.new("TextButton")
+VerifyBtn.Size = UDim2.new(0, 135, 0, 40)
+VerifyBtn.Position = UDim2.new(0.5, -140, 0, 120)
+VerifyBtn.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+VerifyBtn.Text = "Verify Key"
+VerifyBtn.TextColor3 = Color3.new(1, 1, 1)
+VerifyBtn.Font = Enum.Font.GothamBold
+VerifyBtn.TextSize = 14
+Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0, 8)
+VerifyBtn.Parent = KeyFrame
+
+local GetKeyBtn = Instance.new("TextButton")
+GetKeyBtn.Size = UDim2.new(0, 135, 0, 40)
+GetKeyBtn.Position = UDim2.new(0.5, 5, 0, 120)
+GetKeyBtn.BackgroundColor3 = Color3.fromRGB(38, 40, 60)
+GetKeyBtn.Text = "Get Key Link"
+GetKeyBtn.TextColor3 = Color3.new(1, 1, 1)
+GetKeyBtn.Font = Enum.Font.GothamBold
+GetKeyBtn.TextSize = 14
+Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 8)
+GetKeyBtn.Parent = KeyFrame
+
+-- MAIN CONTAINER
+local MainContainer = Instance.new("Frame")
+MainContainer.Size = UDim2.new(0, 750, 0, 450)
+MainContainer.Position = UDim2.new(0.5, -375, 0.5, -225)
+MainContainer.BackgroundColor3 = Color3.fromRGB(15, 16, 26) 
+MainContainer.BorderSizePixel = 0
+MainContainer.ClipsDescendants = true
+MainContainer.Visible = false 
+MainContainer.Parent = HubGui
+Instance.new("UICorner", MainContainer).CornerRadius = UDim.new(0, 12)
+
+VerifyBtn.MouseButton1Click:Connect(function()
+    playClick()
+    if KeyInput.Text == REQUIRED_KEY then
+        isAuthenticated = true
+        KeyFrame:Destroy()
+        MainContainer.Visible = true
+    else
+        KeyInput.Text = "Invalid Key!"
+        task.wait(1)
+        if KeyInput then KeyInput.Text = "" end
+    end
+end)
+
+GetKeyBtn.MouseButton1Click:Connect(function()
+    playClick()
+    if setclipboard then
+        setclipboard(GET_KEY_LINK)
+        GetKeyBtn.Text = "Copied!"
+        task.wait(2)
+        if GetKeyBtn then GetKeyBtn.Text = "Get Key Link" end
+    else
+        GetKeyBtn.Text = "Not supported"
+        task.wait(2)
+        if GetKeyBtn then GetKeyBtn.Text = "Get Key Link" end
+    end
+end)
+
+-- /// DRAGGING LOGIC ///
+local dragging, dragInput, dragStart, startPos
+MainContainer.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position; startPos = MainContainer.Position
+        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+    end
+end)
+MainContainer.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainContainer.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- /// ALPINE SIDEBAR ///
+local Sidebar = Instance.new("Frame", MainContainer)
+Sidebar.Size = UDim2.new(0, 200, 1, 0)
+Sidebar.BackgroundColor3 = Color3.fromRGB(18, 20, 32)
+Sidebar.BorderSizePixel = 0
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 12)
+
+local SidebarCover = Instance.new("Frame", Sidebar)
+SidebarCover.Size = UDim2.new(0, 10, 1, 0)
+SidebarCover.Position = UDim2.new(1, -10, 0, 0)
+SidebarCover.BackgroundColor3 = Color3.fromRGB(18, 20, 32)
+SidebarCover.BorderSizePixel = 0
+
+local LogoText = Instance.new("TextLabel", Sidebar)
+LogoText.Size = UDim2.new(1, 0, 0, 60)
+LogoText.Position = UDim2.new(0, 0, 0, 15)
+LogoText.BackgroundTransparency = 1
+LogoText.Text = "🏔️ ALEXION\nCLIENT"
+LogoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+LogoText.Font = Enum.Font.GothamBlack
+LogoText.TextSize = 20
+LogoText.TextWrapped = true
+
+local ActiveTab = Instance.new("Frame", Sidebar)
+ActiveTab.Size = UDim2.new(1, -30, 0, 40)
+ActiveTab.Position = UDim2.new(0, 15, 0, 90)
+ActiveTab.BackgroundColor3 = Color3.fromRGB(30, 33, 50)
+Instance.new("UICorner", ActiveTab).CornerRadius = UDim.new(0, 8)
+
+local ActiveTabText = Instance.new("TextLabel", ActiveTab)
+ActiveTabText.Size = UDim2.new(1, -40, 1, 0)
+ActiveTabText.Position = UDim2.new(0, 40, 0, 0)
+ActiveTabText.BackgroundTransparency = 1
+ActiveTabText.Text = "Modules"
+ActiveTabText.TextColor3 = Color3.fromRGB(255, 255, 255)
+ActiveTabText.Font = Enum.Font.GothamBold
+ActiveTabText.TextSize = 14
+ActiveTabText.TextXAlignment = Enum.TextXAlignment.Left
+
+local TabIcon = Instance.new("TextLabel", ActiveTab)
+TabIcon.Size = UDim2.new(0, 40, 1, 0)
+TabIcon.BackgroundTransparency = 1
+TabIcon.Text = "🎛️"
+TabIcon.TextSize = 16
+
+local CreditsLabel = Instance.new("TextLabel", Sidebar)
+CreditsLabel.Size = UDim2.new(1, -20, 0, 60)
+CreditsLabel.Position = UDim2.new(0, 10, 1, -70)
+CreditsLabel.BackgroundTransparency = 1
+CreditsLabel.Text = "Created by Alexion\nroblox.com/users/"..tostring(CREATOR_USER_ID)
+CreditsLabel.TextColor3 = Color3.fromRGB(120, 125, 145)
+CreditsLabel.Font = Enum.Font.Gotham
+CreditsLabel.TextSize = 10
+CreditsLabel.TextWrapped = true
+
+-- /// CONTENT AREA ///
+local ContentFrame = Instance.new("Frame", MainContainer)
+ContentFrame.Size = UDim2.new(1, -220, 1, 0)
+ContentFrame.Position = UDim2.new(0, 220, 0, 0)
+ContentFrame.BackgroundTransparency = 1
+
+local HeaderTitle = Instance.new("TextLabel", ContentFrame)
+HeaderTitle.Size = UDim2.new(1, 0, 0, 40)
+HeaderTitle.Position = UDim2.new(0, 0, 0, 20)
+HeaderTitle.BackgroundTransparency = 1
+HeaderTitle.Text = "Modules"
+HeaderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+HeaderTitle.Font = Enum.Font.GothamBold
+HeaderTitle.TextSize = 24
+HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local HeaderSub = Instance.new("TextLabel", ContentFrame)
+HeaderSub.Size = UDim2.new(1, 0, 0, 20)
+HeaderSub.Position = UDim2.new(0, 0, 0, 50)
+HeaderSub.BackgroundTransparency = 1
+HeaderSub.Text = "Configure premium exploits and utilities"
+HeaderSub.TextColor3 = Color3.fromRGB(150, 155, 175)
+HeaderSub.Font = Enum.Font.Gotham
+HeaderSub.TextSize = 14
+HeaderSub.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Modules Grid
+local ToolsPage = Instance.new("ScrollingFrame", ContentFrame)
+ToolsPage.Size = UDim2.new(1, -20, 1, -100)
+ToolsPage.Position = UDim2.new(0, 0, 0, 90)
+ToolsPage.BackgroundTransparency = 1
+ToolsPage.ScrollBarThickness = 4
+ToolsPage.CanvasSize = UDim2.new(0, 0, 0, 0) 
+ToolsPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+local UIGridLayout = Instance.new("UIGridLayout", ToolsPage)
+UIGridLayout.CellSize = UDim2.new(0, 240, 0, 60)
+UIGridLayout.CellPadding = UDim2.new(0, 15, 0, 15)
+UIGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- /// HELPER TO CREATE ALPINE MODULE CARDS ///
+local function createModuleCard(name, iconText, hasStatusIndicator, layoutOrder)
+    local Card = Instance.new("TextButton", ToolsPage)
+    Card.Size = UDim2.new(1, 0, 1, 0)
+    Card.BackgroundColor3 = Color3.fromRGB(28, 30, 48)
+    Card.AutoButtonColor = false
+    Card.Text = ""
+    Card.LayoutOrder = layoutOrder
+    Instance.new("UICorner", Card).CornerRadius = UDim.new(0, 10)
+
+    local Icon = Instance.new("TextLabel", Card)
+    Icon.Size = UDim2.new(0, 40, 1, 0)
+    Icon.Position = UDim2.new(0, 5, 0, 0)
+    Icon.BackgroundTransparency = 1
+    Icon.Text = iconText
+    Icon.TextSize = 20
+
+    local Title = Instance.new("TextLabel", Card)
+    Title.Size = UDim2.new(1, -55, 1, 0)
+    Title.Position = UDim2.new(0, 45, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = name
+    Title.TextColor3 = Color3.fromRGB(230, 230, 240)
+    Title.Font = Enum.Font.GothamSemibold
+    Title.TextSize = 13
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    local statusCircle = nil
+    if hasStatusIndicator then
+        statusCircle = Instance.new("Frame", Card)
+        statusCircle.Size = UDim2.new(0, 8, 0, 8)
+        statusCircle.Position = UDim2.new(1, -20, 0.5, -4)
+        statusCircle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        Instance.new("UICorner", statusCircle).CornerRadius = UDim.new(1, 0)
+    end
+
+    -- Hover Effects
+    Card.MouseEnter:Connect(function() Card.BackgroundColor3 = Color3.fromRGB(38, 40, 60) end)
+    Card.MouseLeave:Connect(function() Card.BackgroundColor3 = Color3.fromRGB(28, 30, 48) end)
+
+    return Card, statusCircle, Title
+end
+
+-- TOOL CARDS REGISTRATION
+local BtnPrompt, _, _         = createModuleCard("Fake Purchase", "🛒", false, 1)
+local BtnCloner, _, _         = createModuleCard("Avatar Cloner", "👯", false, 2)
+local BtnSpeed, _, _          = createModuleCard("Speed Modifier", "⚡", false, 3)
+local BtnNpc, _, _            = createModuleCard("NPC Spawner", "🧍", false, 4)
+local BtnPiggy, PiggyStatus, _= createModuleCard("Piggyback Drone", "🎯", true, 5)
+local BtnTag, TagStatus, _    = createModuleCard("Verified Tag", "✅", true, 6)
+local BtnAfk, AfkStatus, _    = createModuleCard("Anti-AFK", "💤", true, 7)
+local BtnFly, FlyStatus, _    = createModuleCard("Fly Mode (G)", "🕊️", true, 8)
+local BtnNoclip, NoclipStatus,_= createModuleCard("Noclip Mode", "👻", true, 9)
+local BtnAimbot, AimbotStatus,_= createModuleCard("Aimbot Mode (F3)", "🔫", true, 10)
+local BtnESP, ESPStatus, _    = createModuleCard("Player ESP", "👁️", true, 11)
+
+-- NEW OUTFIT & UTILITY CARDS
+local BtnSaveOutfit, _, SaveTitle = createModuleCard("Save Outfit & Anims", "💾", false, 12)
+local BtnLoadOutfit, _, LoadTitle = createModuleCard("Apply Clone (File)", "📥", false, 13)
+local BtnHeadless, HeadlessStatus, _ = createModuleCard("Headless", "🎃", true, 14)
+local BtnResetAnims, _, AnimsTitle = createModuleCard("Reset Animations", "🏃", false, 15)
+local BtnResetAvatar, _, _    = createModuleCard("Reset Avatar", "💀", false, 16)
+local BtnRagebait, RagebaitStatus, _ = createModuleCard("Ragebait Mode", "😡", true, 17)
+
+
+-- ////////////////////////////////////////////
+-- /// 2. SUB-MENU THEME OVERHAULS          ///
+-- ////////////////////////////////////////////
+
+local function themeSubMenu(frame)
+    frame.BackgroundColor3 = Color3.fromRGB(28, 30, 48)
+    frame.BorderSizePixel = 0
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    
+    local title = frame:FindFirstChildOfClass("TextLabel")
+    if title then title.TextColor3 = Color3.fromRGB(255, 255, 255) end
+    
+    local close = frame:FindFirstChild("TextButton")
+    if close and close.Text == "X" then 
+        close.BackgroundColor3 = Color3.fromRGB(45, 48, 70) 
+    end
+    
+    for _, child in ipairs(frame:GetChildren()) do
+        if child:IsA("TextBox") then
+            child.BackgroundColor3 = Color3.fromRGB(20, 22, 35)
+        end
+    end
+end
+
+-- CLONER
+local ClonerFrame = Instance.new("Frame")
+ClonerFrame.Size = UDim2.new(0, 250, 0, 150)
+ClonerFrame.Position = UDim2.new(0.5, 100, 0.5, -75)
+ClonerFrame.Visible = false
+ClonerFrame.Active = true
+ClonerFrame.Parent = HubGui
+
+local ClonerTitle = Instance.new("TextLabel", ClonerFrame)
+ClonerTitle.Size = UDim2.new(1, -25, 0, 30)
+ClonerTitle.Position = UDim2.new(0, 15, 0, 5)
+ClonerTitle.BackgroundTransparency = 1; ClonerTitle.Text = "Avatar Cloner"
+ClonerTitle.Font = Enum.Font.GothamBold; ClonerTitle.TextSize = 14
+ClonerTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local ClonerCloseBtn = Instance.new("TextButton", ClonerFrame)
+ClonerCloseBtn.Size = UDim2.new(0, 25, 0, 25); ClonerCloseBtn.Position = UDim2.new(1, -35, 0, 10)
+ClonerCloseBtn.Text = "X"
+ClonerCloseBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", ClonerCloseBtn).CornerRadius = UDim.new(0, 6)
+
+local ClonerInput = Instance.new("TextBox", ClonerFrame)
+ClonerInput.Size = UDim2.new(0, 210, 0, 35)
+ClonerInput.Position = UDim2.new(0, 20, 0, 45)
+ClonerInput.Text = "Enter username"; ClonerInput.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", ClonerInput).CornerRadius = UDim.new(0, 6)
+
+local CloneExecuteBtn = Instance.new("TextButton", ClonerFrame)
+CloneExecuteBtn.Size = UDim2.new(0, 210, 0, 35)
+CloneExecuteBtn.Position = UDim2.new(0, 20, 0, 90)
+CloneExecuteBtn.BackgroundColor3 = Color3.fromRGB(138, 43, 226); CloneExecuteBtn.Text = "Clone Avatar"
+CloneExecuteBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", CloneExecuteBtn).CornerRadius = UDim.new(0, 6)
+
+local ClonerStatus = Instance.new("TextLabel", ClonerFrame)
+ClonerStatus.Size = UDim2.new(1, 0, 0, 20)
+ClonerStatus.Position = UDim2.new(0, 0, 0, 130)
+ClonerStatus.BackgroundTransparency = 1; ClonerStatus.Text = "Ready"; ClonerStatus.TextColor3 = Color3.fromRGB(150, 155, 175)
+ClonerStatus.TextSize = 11
+themeSubMenu(ClonerFrame)
+
+-- SPEED
+local SpeedFrame = Instance.new("Frame")
+SpeedFrame.Size = UDim2.new(0, 250, 0, 150)
+SpeedFrame.Position = UDim2.new(0.5, 100, 0.5, 90)
+SpeedFrame.Visible = false
+SpeedFrame.Active = true
+SpeedFrame.Parent = HubGui
+
+local SpeedTitle = Instance.new("TextLabel", SpeedFrame)
+SpeedTitle.Size = UDim2.new(1, -25, 0, 30)
+SpeedTitle.Position = UDim2.new(0, 15, 0, 5)
+SpeedTitle.BackgroundTransparency = 1; SpeedTitle.Text = "Speed Modifier"
+SpeedTitle.Font = Enum.Font.GothamBold; SpeedTitle.TextSize = 14
+SpeedTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local SpeedCloseBtn = Instance.new("TextButton", SpeedFrame)
+SpeedCloseBtn.Size = UDim2.new(0, 25, 0, 25); SpeedCloseBtn.Position = UDim2.new(1, -35, 0, 10)
+SpeedCloseBtn.Text = "X"
+SpeedCloseBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", SpeedCloseBtn).CornerRadius = UDim.new(0, 6)
+
+local SpeedInput = Instance.new("TextBox", SpeedFrame)
+SpeedInput.Size = UDim2.new(0, 210, 0, 35)
+SpeedInput.Position = UDim2.new(0, 20, 0, 45)
+SpeedInput.Text = "Enter speed (Default: 16)"
+SpeedInput.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", SpeedInput).CornerRadius = UDim.new(0, 6)
+
+local SpeedExecuteBtn = Instance.new("TextButton", SpeedFrame)
+SpeedExecuteBtn.Size = UDim2.new(0, 100, 0, 35)
+SpeedExecuteBtn.Position = UDim2.new(0, 20, 0, 90)
+SpeedExecuteBtn.BackgroundColor3 = Color3.fromRGB(138, 43, 226); SpeedExecuteBtn.Text = "Set Speed"
+SpeedExecuteBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", SpeedExecuteBtn).CornerRadius = UDim.new(0, 6)
+
+local SpeedResetBtn = Instance.new("TextButton", SpeedFrame)
+SpeedResetBtn.Size = UDim2.new(0, 100, 0, 35)
+SpeedResetBtn.Position = UDim2.new(0, 130, 0, 90)
+SpeedResetBtn.BackgroundColor3 = Color3.fromRGB(45, 48, 70); SpeedResetBtn.Text = "Reset (16)"
+SpeedResetBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", SpeedResetBtn).CornerRadius = UDim.new(0, 6)
+
+local SpeedStatus = Instance.new("TextLabel", SpeedFrame)
+SpeedStatus.Size = UDim2.new(1, 0, 0, 20)
+SpeedStatus.Position = UDim2.new(0, 0, 0, 130)
+SpeedStatus.BackgroundTransparency = 1; SpeedStatus.Text = "Ready"; SpeedStatus.TextColor3 = Color3.fromRGB(150, 155, 175)
+SpeedStatus.TextSize = 11
+themeSubMenu(SpeedFrame)
+
+-- NPC
+local NpcFrame = Instance.new("Frame")
+NpcFrame.Size = UDim2.new(0, 250, 0, 150)
+NpcFrame.Position = UDim2.new(0.5, 100, 0.5, -240) 
+NpcFrame.Visible = false
+NpcFrame.Active = true
+NpcFrame.Parent = HubGui
+
+local NpcTitle = Instance.new("TextLabel", NpcFrame)
+NpcTitle.Size = UDim2.new(1, -25, 0, 30)
+NpcTitle.Position = UDim2.new(0, 15, 0, 5)
+NpcTitle.BackgroundTransparency = 1; NpcTitle.Text = "NPC Spawner"
+NpcTitle.Font = Enum.Font.GothamBold; NpcTitle.TextSize = 14
+NpcTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local NpcCloseBtn = Instance.new("TextButton", NpcFrame)
+NpcCloseBtn.Size = UDim2.new(0, 25, 0, 25); NpcCloseBtn.Position = UDim2.new(1, -35, 0, 10)
+NpcCloseBtn.Text = "X"
+NpcCloseBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", NpcCloseBtn).CornerRadius = UDim.new(0, 6)
+
+local NpcInput = Instance.new("TextBox", NpcFrame)
+NpcInput.Size = UDim2.new(0, 210, 0, 35)
+NpcInput.Position = UDim2.new(0, 20, 0, 45)
+NpcInput.Text = "Enter username"; NpcInput.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", NpcInput).CornerRadius = UDim.new(0, 6)
+
+local NpcExecuteBtn = Instance.new("TextButton", NpcFrame)
+NpcExecuteBtn.Size = UDim2.new(0, 210, 0, 35)
+NpcExecuteBtn.Position = UDim2.new(0, 20, 0, 90)
+NpcExecuteBtn.BackgroundColor3 = Color3.fromRGB(138, 43, 226); NpcExecuteBtn.Text = "Spawn"
+NpcExecuteBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", NpcExecuteBtn).CornerRadius = UDim.new(0, 6)
+
+local NpcStatus = Instance.new("TextLabel", NpcFrame)
+NpcStatus.Size = UDim2.new(1, 0, 0, 20)
+NpcStatus.Position = UDim2.new(0, 0, 0, 130)
+NpcStatus.BackgroundTransparency = 1; NpcStatus.Text = "Ready"; NpcStatus.TextColor3 = Color3.fromRGB(150, 155, 175)
+NpcStatus.TextSize = 11
+themeSubMenu(NpcFrame)
+
+-- PIGGYBACK
+local PiggyFrame = Instance.new("Frame")
+PiggyFrame.Size = UDim2.new(0, 250, 0, 300)
+PiggyFrame.Position = UDim2.new(0.5, 100, 0.5, -90)
+PiggyFrame.Visible = false
+PiggyFrame.Active = true
+PiggyFrame.Parent = HubGui
+
+local PiggyTitle = Instance.new("TextLabel", PiggyFrame)
+PiggyTitle.Size = UDim2.new(1, -25, 0, 30)
+PiggyTitle.Position = UDim2.new(0, 15, 0, 5)
+PiggyTitle.BackgroundTransparency = 1; PiggyTitle.Text = "Piggyback Drone"
+PiggyTitle.Font = Enum.Font.GothamBold; PiggyTitle.TextSize = 14
+PiggyTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local PiggyCloseBtn = Instance.new("TextButton", PiggyFrame)
+PiggyCloseBtn.Size = UDim2.new(0, 25, 0, 25); PiggyCloseBtn.Position = UDim2.new(1, -35, 0, 10)
+PiggyCloseBtn.Text = "X"
+PiggyCloseBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", PiggyCloseBtn).CornerRadius = UDim.new(0, 6)
+
+local PiggyStopBtn = Instance.new("TextButton", PiggyFrame)
+PiggyStopBtn.Size = UDim2.new(1, -40, 0, 35)
+PiggyStopBtn.Position = UDim2.new(0, 20, 0, 45)
+PiggyStopBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 60); PiggyStopBtn.Text = "🛑 Stop Following"
+PiggyStopBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", PiggyStopBtn).CornerRadius = UDim.new(0, 6)
+
+local PiggyScroll = Instance.new("ScrollingFrame", PiggyFrame)
+PiggyScroll.Size = UDim2.new(1, -30, 1, -100)
+PiggyScroll.Position = UDim2.new(0, 15, 0, 90)
+PiggyScroll.BackgroundTransparency = 1; PiggyScroll.ScrollBarThickness = 3
+local PiggyList = Instance.new("UIListLayout", PiggyScroll)
+PiggyList.Padding = UDim.new(0, 5)
+themeSubMenu(PiggyFrame)
+
+-- Draggable Submenus helper
+local function makeDraggable(frame)
+    local drag, dInput, dStart, sPos
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            drag = true; dStart = input.Position; sPos = frame.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then drag = false end end)
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then dInput = input end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dInput and drag then
+            local delta = input.Position - dStart
+            frame.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + delta.X, sPos.Y.Scale, sPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+makeDraggable(ClonerFrame)
+makeDraggable(SpeedFrame); makeDraggable(NpcFrame); makeDraggable(PiggyFrame)
+
+-- ////////////////////////////////////////////
+-- /// 3. ORIGINAL TOOL LOGIC INTEGRATION   ///
+-- ////////////////////////////////////////////
+
+-- [SHARED WELD FUNCTION FOR CLONERS]
+local function manuallyWeldAccessory(character, accessory)
+    pcall(function()
+        local handle = accessory:FindFirstChild("Handle")
+        if not handle then return end
+        handle.CanCollide = false
+        handle.Anchored = false
+        local accAttachment = handle:FindFirstChildOfClass("Attachment")
+        if not accAttachment then 
+            accessory.Parent = character
+            local head = character:FindFirstChild("Head")
+            if head then
+                local weld = Instance.new("Weld")
+                weld.Name = "HatWeld"
+                weld.Part0 = head
+                weld.Part1 = handle
+                weld.C0 = CFrame.new(0, 0.5, 0)
+                weld.C1 = accessory.AttachmentPoint or CFrame.new()
+                weld.Parent = handle
+            end
+            return 
+        end
+        local charAttachment, charPart = nil, nil
+        for _, obj in ipairs(character:GetDescendants()) do
+            if obj:IsA("Attachment") and obj.Name == accAttachment.Name and obj.Parent:IsA("BasePart") then
+                charAttachment = obj
+                charPart = obj.Parent
+                break
+            end
+        end
+        if charPart and charAttachment then
+            accessory.Parent = character
+            handle.CFrame = charPart.CFrame * charAttachment.CFrame * accAttachment.CFrame:Inverse()
+            local weld = Instance.new("Weld")
+            weld.Name = "AccessoryWeld"
+            weld.Part0 = charPart
+            weld.Part1 = handle
+            weld.C0 = charAttachment.CFrame
+            weld.C1 = accAttachment.CFrame
+            weld.Parent = handle
+        end
+    end)
+end
+
+-- [USERNAME AVATAR CLONER LOGIC]
+local function executeAvatarClone(username)
+    ClonerStatus.Text = "Searching for " .. username
+    ClonerStatus.TextColor3 = Color3.new(1, 1, 0)
+    task.spawn(function()
+        local success, userId = pcall(function() return Players:GetUserIdFromNameAsync(username) end)
+        if not success or not userId then
+            ClonerStatus.Text = "User not found!"
+            ClonerStatus.TextColor3 = Color3.new(1, 0, 0)
+            return
+        end
+        ClonerStatus.Text = "Applying avatar..."
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid", 5)
+        if not humanoid then return end
+        
+        local successApp, appearance = pcall(function() return Players:GetCharacterAppearanceAsync(userId) end)
+        if not successApp or not appearance then
+            ClonerStatus.Text = "Failed to load assets!"
+            ClonerStatus.TextColor3 = Color3.new(1, 0, 0)
+            return
+        end
+        
+        pcall(function()
+            local animate = character:FindFirstChild("Animate")
+            if animate then
+                local stolenAnims = {}
+                for _, desc in ipairs(appearance:GetDescendants()) do
+                    if desc:IsA("Animation") and desc.Parent then
+                        stolenAnims[string.lower(desc.Parent.Name)] = desc.AnimationId
+                    end
+                end
+                
+                if stolenAnims["idle"] and animate:FindFirstChild("idle") then
+                    if animate.idle:FindFirstChild("Animation1") then animate.idle.Animation1.AnimationId = stolenAnims["idle"] end
+                    if animate.idle:FindFirstChild("Animation2") then animate.idle.Animation2.AnimationId = stolenAnims["idle"] end
+                end
+                if stolenAnims["walk"] and animate:FindFirstChild("walk") and animate.walk:FindFirstChild("WalkAnim") then animate.walk.WalkAnim.AnimationId = stolenAnims["walk"] end
+                if stolenAnims["run"] and animate:FindFirstChild("run") and animate.run:FindFirstChild("RunAnim") then animate.run.RunAnim.AnimationId = stolenAnims["run"] end
+                
+                local animator = humanoid:FindFirstChildOfClass("Animator")
+                if animator then for _, track in ipairs(animator:GetPlayingAnimationTracks()) do pcall(function() track:Stop() end) end end
+                animate.Disabled = true
+                task.wait(0.1); animate.Disabled = false
+            end
+        end)
+        
+        local displayName = username
+        pcall(function()
+            local userInfo = UserService:GetUserInfosByUserIdsAsync({userId})
+            if userInfo and userInfo[1] then displayName = userInfo[1].DisplayName end
+        end)
+        
+        pcall(function()
+            for _, item in ipairs(character:GetChildren()) do
+                if item:IsA("Accessory") or item:IsA("Hat") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("BodyColors") then item:Destroy() end
+            end
+            for _, item in ipairs(appearance:GetChildren()) do
+                if item:IsA("Accessory") or item:IsA("Hat") then
+                    manuallyWeldAccessory(character, item:Clone())
+                elseif item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("BodyColors") then
+                    item:Clone().Parent = character
+                elseif item:IsA("Decal") and item.Name == "Face" then
+                    local head = character:FindFirstChild("Head")
+                    if head then
+                        local oldFace = head:FindFirstChildOfClass("Decal")
+                        if oldFace then oldFace:Destroy() end
+                        item:Clone().Parent = head
+                    end
+                end
+            end
+        end)
+        
+        CurrentTagName = displayName 
+        ClonerStatus.Text = "Successfully cloned " .. displayName .. "!"
+        ClonerStatus.TextColor3 = Color3.new(0, 1, 0)
+    end)
+end
+
+CloneExecuteBtn.MouseButton1Click:Connect(function() playClick(); executeAvatarClone(ClonerInput.Text) end)
+ClonerCloseBtn.MouseButton1Click:Connect(function() playClick(); ClonerFrame.Visible = false end)
+BtnCloner.MouseButton1Click:Connect(function() playClick(); ClonerFrame.Visible = not ClonerFrame.Visible end)
+ClonerInput.Focused:Connect(function() if ClonerInput.Text == "Enter username" then ClonerInput.Text = "" end end)
+ClonerInput.FocusLost:Connect(function() if ClonerInput.Text == "" then ClonerInput.Text = "Enter username" end end)
+
+-- [FILE OUTFIT CLONER LOGIC]
+BtnSaveOutfit.MouseButton1Click:Connect(function()
+    playClick()
+    if not writefile then 
+        SaveTitle.Text = "Not Supported by Executor"
+        task.delay(2, function() SaveTitle.Text = "Save Outfit & Anims" end)
+        return 
+    end
+    
+    local char = LocalPlayer.Character
+    if not char then return end
+    SaveTitle.Text = "Extracting..."
+
+    local outfitData = { Accessories = {}, Animations = {} }
+
+    local shirt = char:FindFirstChildOfClass("Shirt")
+    if shirt then outfitData.Shirt = shirt.ShirtTemplate end
+    
+    local pants = char:FindFirstChildOfClass("Pants")
+    if pants then outfitData.Pants = pants.PantsTemplate end
+    
+    local tshirt = char:FindFirstChildOfClass("ShirtGraphic")
+    if tshirt then outfitData.TShirt = tshirt.Graphic end
+
+    local head = char:FindFirstChild("Head")
+    if head then
+        local face = head:FindFirstChildOfClass("Decal")
+        if face then outfitData.Face = face.Texture end
+    end
+
+    local bc = char:FindFirstChildOfClass("BodyColors")
+    if bc then
+        outfitData.Colors = {
+            Head = bc.HeadColor3:ToHex(), Torso = bc.TorsoColor3:ToHex(),
+            LArm = bc.LeftArmColor3:ToHex(), RArm = bc.RightArmColor3:ToHex(),
+            LLeg = bc.LeftLegColor3:ToHex(), RLeg = bc.RightLegColor3:ToHex()
+        }
+    end
+
+    local animate = char:FindFirstChild("Animate")
+    if animate then
+        for _, animFolder in pairs(animate:GetChildren()) do
+            if animFolder:IsA("StringValue") or animFolder:IsA("Folder") then
+                local animObj = animFolder:FindFirstChildOfClass("Animation")
+                if animObj then outfitData.Animations[animFolder.Name] = animObj.AnimationId end
+            end
+        end
+    end
+
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        local s, desc = pcall(function() return hum:GetAppliedDescription() end)
+        if s and desc then
+            local accTypes = {
+                "HatAccessory", "HairAccessory", "FaceAccessory", "NeckAccessory", 
+                "ShouldersAccessory", "FrontAccessory", "BackAccessory", "WaistAccessory",
+                "ShirtAccessory", "PantsAccessory", "TShirtAccessory", "ShortsAccessory", 
+                "SweaterAccessory", "JacketAccessory", "LeftShoeAccessory", "RightShoeAccessory", "DressSkirtAccessory"
+            }
+            for _, accType in ipairs(accTypes) do
+                pcall(function()
+                    local ids = desc[accType]
+                    if ids and ids ~= "" then
+                        for _, id in ipairs(string.split(ids, ",")) do
+                            if tonumber(id) and tonumber(id) > 0 then
+                                table.insert(outfitData.Accessories, id)
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end
+
+    pcall(function() writefile(FILE_NAME, HttpService:JSONEncode(outfitData)) end)
+    task.wait(1)
+    SaveTitle.Text = "Save Outfit & Anims"
+end)
+
+local function applySavedOutfit(char)
+    if not readfile or not isfile or not isfile(FILE_NAME) then return end
+    char:WaitForChild("Humanoid")
+    task.wait(0.2) 
+
+    local outfitData = HttpService:JSONDecode(readfile(FILE_NAME))
+
+    task.spawn(function()
+        local fetchedAccessories = {}
+        if outfitData.Accessories then
+            for _, id in ipairs(outfitData.Accessories) do
+                local s, objs = pcall(function() return game:GetObjects("rbxassetid://" .. id) end)
+                if s and objs and objs[1] then
+                    table.insert(fetchedAccessories, objs[1])
+                end
+            end
+        end
+
+        for _, obj in pairs(char:GetChildren()) do
+            if obj:IsA("Accessory") or obj:IsA("Shirt") or obj:IsA("Pants") or obj:IsA("ShirtGraphic") then
+                obj:Destroy()
+            end
+        end
+
+        if outfitData.Colors then
+            local bc = char:FindFirstChildOfClass("BodyColors") or Instance.new("BodyColors", char)
+            bc.HeadColor3 = Color3.fromHex(outfitData.Colors.Head)
+            bc.TorsoColor3 = Color3.fromHex(outfitData.Colors.Torso)
+            bc.LeftArmColor3 = Color3.fromHex(outfitData.Colors.LArm)
+            bc.RightArmColor3 = Color3.fromHex(outfitData.Colors.RArm)
+            bc.LeftLegColor3 = Color3.fromHex(outfitData.Colors.LLeg)
+            bc.RightLegColor3 = Color3.fromHex(outfitData.Colors.RLeg)
+        end
+
+        if outfitData.Shirt then Instance.new("Shirt", char).ShirtTemplate = outfitData.Shirt end
+        if outfitData.Pants then Instance.new("Pants", char).PantsTemplate = outfitData.Pants end
+        if outfitData.TShirt then Instance.new("ShirtGraphic", char).Graphic = outfitData.TShirt end
+        
+        if outfitData.Face then
+            local head = char:FindFirstChild("Head")
+            if head then
+                local face = head:FindFirstChildOfClass("Decal") or Instance.new("Decal", head)
+                face.Name = "face"
+                face.Texture = outfitData.Face
+            end
+        end
+
+        if outfitData.Animations then
+            local animate = char:FindFirstChild("Animate")
+            if animate then
+                for animName, animId in pairs(outfitData.Animations) do
+                    local animFolder = animate:FindFirstChild(animName)
+                    if animFolder then
+                        for _, animObj in pairs(animFolder:GetChildren()) do
+                            if animObj:IsA("Animation") then
+                                animObj.AnimationId = animId
+                            end
+                        end
+                    end
+                end
+                
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                local animator = hum and hum:FindFirstChildOfClass("Animator")
+                if animator then
+                    for _, track in pairs(animator:GetPlayingAnimationTracks()) do
+                        track:Stop()
+                    end
+                end
+                
+                animate.Disabled = true
+                task.wait(0.1)
+                animate.Disabled = false
+            end
+        end
+
+        for _, item in ipairs(fetchedAccessories) do
+            if item:IsA("Accessory") then
+                manuallyWeldAccessory(char, item)
+            elseif item:IsA("Model") or item:IsA("Folder") then
+                local acc = item:FindFirstChildOfClass("Accessory")
+                if acc then manuallyWeldAccessory(char, acc) end
+            end
+        end
+    end)
+end
+
+BtnLoadOutfit.MouseButton1Click:Connect(function()
+    playClick()
+    if not readfile or not isfile or not isfile(FILE_NAME) then 
+        LoadTitle.Text = "No saved file found"
+        task.delay(2, function() LoadTitle.Text = "Apply Clone (File)" end)
+        return 
+    end
+    local char = LocalPlayer.Character
+    if not char then return end
+    
+    LoadTitle.Text = "Applying..."
+    cloneActive = true
+    applySavedOutfit(char)
+    task.delay(2, function() LoadTitle.Text = "Apply Clone (File)" end)
+end)
+
+-- [HEADLESS LOGIC]
+local function applyHeadState(char)
+    local head = char:WaitForChild("Head", 5)
+    if not head then return end
+
+    if headlessEnabled then
+        head.Transparency = 1
+        local face = head:FindFirstChildOfClass("Decal")
+        if face then face.Transparency = 1 end
+        local mesh = head:FindFirstChildOfClass("SpecialMesh")
+        if mesh then mesh.Scale = Vector3.new(0, 0, 0) end
+    else
+        head.Transparency = 0
+        local face = head:FindFirstChildOfClass("Decal")
+        if face then face.Transparency = 0 end
+        local mesh = head:FindFirstChildOfClass("SpecialMesh")
+        if mesh then mesh.Scale = Vector3.new(1.25, 1.25, 1.25) end
+    end
+
+    if not head:FindFirstChild("HeadlessLock") then
+        local lock = Instance.new("BoolValue", head)
+        lock.Name = "HeadlessLock"
+        head:GetPropertyChangedSignal("Transparency"):Connect(function()
+            if headlessEnabled and head.Transparency ~= 1 then
+                head.Transparency = 1
+            elseif not headlessEnabled and head.Transparency ~= 0 then
+                head.Transparency = 0
+            end
+        end)
+    end
+end
+
+BtnHeadless.MouseButton1Click:Connect(function()
+    playClick()
+    headlessEnabled = not headlessEnabled
+    if headlessEnabled then
+        TweenService:Create(HeadlessStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+    else
+        TweenService:Create(HeadlessStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+    end
+    if LocalPlayer.Character then applyHeadState(LocalPlayer.Character) end
+end)
+
+-- [RESET ANIMATIONS LOGIC]
+local function cacheDefaultAnimations(char)
+    local animate = char:WaitForChild("Animate", 5)
+    if animate then
+        table.clear(defaultAnims)
+        for _, animFolder in pairs(animate:GetChildren()) do
+            if animFolder:IsA("StringValue") or animFolder:IsA("Folder") then
+                local animObj = animFolder:FindFirstChildOfClass("Animation")
+                if animObj then defaultAnims[animFolder.Name] = animObj.AnimationId end
+            end
+        end
+    end
+end
+
+BtnResetAnims.MouseButton1Click:Connect(function()
+    playClick()
+    local char = LocalPlayer.Character
+    if not char then return end
+    
+    local animate = char:FindFirstChild("Animate")
+    if animate then
+        for animName, animId in pairs(defaultAnims) do
+            local animFolder = animate:FindFirstChild(animName)
+            if animFolder then
+                for _, animObj in pairs(animFolder:GetChildren()) do
+                    if animObj:IsA("Animation") then animObj.AnimationId = animId end
+                end
+            end
+        end
+        
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        local animator = hum and hum:FindFirstChildOfClass("Animator")
+        if animator then
+            for _, track in pairs(animator:GetPlayingAnimationTracks()) do track:Stop() end
+        end
+        
+        animate.Disabled = true; task.wait(0.1)
+        animate.Disabled = false
+        AnimsTitle.Text = "✅ Fixed!"
+        task.delay(1.5, function() AnimsTitle.Text = "Reset Animations" end)
+    end
+end)
+
+-- [RESET AVATAR LOGIC]
+BtnResetAvatar.MouseButton1Click:Connect(function()
+    playClick()
+    headlessEnabled = false
+    cloneActive = false
+    TweenService:Create(HeadlessStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.Health = 0 end
+    end
+end)
+
+
+-- [SPEED LOGIC]
+local speedLockConnection = nil
+local currentTargetSpeed = 16
+local isSpeedLocked = false
+
+local function applySpeedLock(char)
+    pcall(function()
+        if not isSpeedLocked then return end
+        local hum = char:WaitForChild("Humanoid", 5)
+        if not hum then return end
+        hum.WalkSpeed = currentTargetSpeed
+        
+        if speedLockConnection then speedLockConnection:Disconnect() end
+        speedLockConnection = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+            if hum.WalkSpeed ~= currentTargetSpeed then
+                hum.WalkSpeed = currentTargetSpeed
+            end
+        end)
+    end)
+end
+
+SpeedExecuteBtn.MouseButton1Click:Connect(function()
+    playClick()
+    local val = tonumber(SpeedInput.Text)
+    if val then
+        currentTargetSpeed = val
+        isSpeedLocked = true
+        if LocalPlayer.Character then applySpeedLock(LocalPlayer.Character) end
+        SpeedStatus.Text = "Speed locked at: " .. val
+        SpeedStatus.TextColor3 = Color3.new(0, 1, 0)
+    else
+        SpeedStatus.Text = "Invalid number!"
+        SpeedStatus.TextColor3 = Color3.new(1, 0, 0)
+    end
+end)
+
+SpeedResetBtn.MouseButton1Click:Connect(function()
+    playClick()
+    isSpeedLocked = false
+    if speedLockConnection then speedLockConnection:Disconnect() end
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then hum.WalkSpeed = 16 end
+    end
+    SpeedStatus.Text = "Speed reset to default."
+    SpeedStatus.TextColor3 = Color3.fromRGB(150, 130, 180)
+end)
+
+SpeedCloseBtn.MouseButton1Click:Connect(function() playClick()
+    SpeedFrame.Visible = false end)
+BtnSpeed.MouseButton1Click:Connect(function() playClick(); SpeedFrame.Visible = not SpeedFrame.Visible end)
+SpeedInput.Focused:Connect(function() if SpeedInput.Text == "Enter speed (Default: 16)" then SpeedInput.Text = "" end end)
+SpeedInput.FocusLost:Connect(function() if SpeedInput.Text == "" then SpeedInput.Text = "Enter speed (Default: 16)" end end)
+
+
+-- [NPC LOGIC]
+local function createCleanTag(head, displayName)
+    pcall(function()
+        local bg = Instance.new("BillboardGui", head)
+        bg.Name = "ReplicaTag"; bg.Size = UDim2.new(0, 200, 0, 50); bg.StudsOffset = Vector3.new(0, 3, 0); bg.AlwaysOnTop = true
+        local label = Instance.new("TextLabel", bg)
+        label.Size = UDim2.new(1, 0, 1, 0); label.BackgroundTransparency = 1; label.Text = displayName .. " "; label.TextColor3 = Color3.new(1, 1, 1); label.Font = Enum.Font.GothamBold; label.TextSize = 18; label.TextStrokeTransparency = 0.5
+    end)
+end
+
+local function setupAnims(npc)
+    pcall(function()
+        local hum = npc:WaitForChild("Humanoid", 5)
+        if not hum then return end
+        task.wait(0.5)
+        local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
+        
+        local idle = Instance.new("Animation")
+        idle.AnimationId = "rbxassetid://507766388"
+        local walk = Instance.new("Animation")
+        walk.AnimationId = "rbxassetid://507777826"
+
+        local iTrack = animator:LoadAnimation(idle)
+        local wTrack = animator:LoadAnimation(walk)
+
+        task.spawn(function()
+            while npc and npc.Parent do
+                pcall(function()
+                    if hum.RootPart and hum.RootPart.Velocity.Magnitude > 1 then
+                        if not wTrack.IsPlaying then pcall(function() iTrack:Stop(0.2) end)
+                            pcall(function() wTrack:Play(0.2) end) end
+                    else
+                        if not iTrack.IsPlaying then pcall(function() wTrack:Stop(0.2) end)
+                            pcall(function() iTrack:Play(0.2) end) end
+                    end
+                end)
+                task.wait(0.1)
+            end
+        end)
+    end)
+end
+
+local function spawnReplica(target)
+    NpcStatus.Text = "Searching for " .. target
+    NpcStatus.TextColor3 = Color3.new(1, 1, 0)
+    
+    task.spawn(function()
+        local success, userId = pcall(function() return Players:GetUserIdFromNameAsync(target) end)
+        if not success or not userId then
+            NpcStatus.Text = "User not found!"
+            NpcStatus.TextColor3 = Color3.new(1, 0, 0)
+            return
+        end
+
+        local displayName = target
+        pcall(function()
+            local info = UserService:GetUserInfosByUserIdsAsync({userId})
+            displayName = info[1].DisplayName
+        end)
+
+        NpcStatus.Text = "Spawning NPC..."
+        if not LocalPlayer.Character then return end
+        
+        local npc = nil
+        pcall(function()
+            LocalPlayer.Character.Archivable = true
+            npc = LocalPlayer.Character:Clone()
+            LocalPlayer.Character.Archivable = false
+        end)
+        
+        if not npc then return end
+        npc.Parent = workspace
+        local hum = npc:WaitForChild("Humanoid", 5)
+        if not hum then return end
+        
+        pcall(function()
+            for _, v in pairs(npc:GetChildren()) do
+                if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("BodyColors") then v:Destroy() end
+            end
+        end)
+
+        pcall(function()
+            local desc = Players:GetHumanoidDescriptionFromUserId(userId)
+            hum:ApplyDescription(desc)
+        end)
+        
+        pcall(function() createCleanTag(npc:WaitForChild("Head", 5), displayName) end)
+        task.spawn(function() setupAnims(npc) end)
+
+        task.spawn(function()
+            while npc and npc.Parent do
+                task.wait()
+                pcall(function()
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        hum:MoveTo(LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(4, 0, 3))
+                    end
+                end)
+            end
+        end)
+        
+        NpcStatus.Text = "Spawned " .. displayName .. "!"
+        NpcStatus.TextColor3 = Color3.new(0, 1, 0)
+    end)
+end
+
+NpcExecuteBtn.MouseButton1Click:Connect(function() playClick()
+    spawnReplica(NpcInput.Text) end)
+NpcCloseBtn.MouseButton1Click:Connect(function() playClick(); NpcFrame.Visible = false end)
+BtnNpc.MouseButton1Click:Connect(function() playClick(); NpcFrame.Visible = not NpcFrame.Visible end)
+NpcInput.Focused:Connect(function() if NpcInput.Text == "Enter username" then NpcInput.Text = "" end end)
+NpcInput.FocusLost:Connect(function() if NpcInput.Text == "" then NpcInput.Text = "Enter username" end end)
+
+-- [PIGGYBACK LOGIC]
+local isPiggybacking = false
+local piggyTarget = nil
+local piggyFollowConn = nil
+local piggyNoclipConn = nil
+
+local function stopPiggyback()
+    isPiggybacking = false
+    piggyTarget = nil
+    if piggyFollowConn then piggyFollowConn:Disconnect()
+        piggyFollowConn = nil end
+    if piggyNoclipConn then piggyNoclipConn:Disconnect()
+        piggyNoclipConn = nil end
+    pcall(function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+            LocalPlayer.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+        end
+    end)
+    TweenService:Create(PiggyStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+end
+
+local function startPiggyback(targetPlayer)
+    stopPiggyback()
+    isPiggybacking = true
+    piggyTarget = targetPlayer
+    TweenService:Create(PiggyStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+    
+    piggyFollowConn = RunService.Heartbeat:Connect(function()
+        pcall(function()
+            local myChar = LocalPlayer.Character
+            local targetChar = targetPlayer.Character
+            if myChar and targetChar and targetChar:FindFirstChild("HumanoidRootPart") and myChar:FindFirstChild("HumanoidRootPart") then
+                local targetRoot = targetChar.HumanoidRootPart
+                local myRoot = myChar.HumanoidRootPart
+                local myHum = myChar:FindFirstChildOfClass("Humanoid")
+                
+                local offset = CFrame.new(0, 1.5, 1.5)
+                myRoot.CFrame = CFrame.lookAt((targetRoot.CFrame * offset).Position, targetRoot.Position)
+                myRoot.Velocity = Vector3.zero 
+                if myHum then myHum.PlatformStand = true end
+            else
+                stopPiggyback()
+            end
+        end)
+    end)
+
+    piggyNoclipConn = RunService.Stepped:Connect(function()
+        pcall(function()
+            if LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then part.CanCollide = false end
+                end
+            end
+        end)
+    end)
+end
+
+local function populatePiggyList()
+    for _, child in pairs(PiggyScroll:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local btn = Instance.new("TextButton", PiggyScroll)
+            btn.Size = UDim2.new(1, -10, 0, 30)
+            btn.BackgroundColor3 = Color3.fromRGB(20, 22, 35)
+            btn.Text = "🎯 " .. player.DisplayName
+            btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.Font = Enum.Font.GothamBold
+            btn.TextSize = 12
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+            
+            btn.MouseButton1Click:Connect(function()
+                playClick()
+                startPiggyback(player)
+            end)
+        end
+    end
+    PiggyScroll.CanvasSize = UDim2.new(0, 0, 0, PiggyList.AbsoluteContentSize.Y)
+end
+
+PiggyStopBtn.MouseButton1Click:Connect(function() playClick()
+    stopPiggyback() end)
+PiggyCloseBtn.MouseButton1Click:Connect(function() playClick(); PiggyFrame.Visible = false end)
+BtnPiggy.MouseButton1Click:Connect(function()
+    playClick()
+    PiggyFrame.Visible = not PiggyFrame.Visible
+    if PiggyFrame.Visible then populatePiggyList() end
+end)
+
+Players.PlayerAdded:Connect(function() populatePiggyList() end)
+Players.PlayerRemoving:Connect(function(player) 
+    if piggyTarget == player then stopPiggyback() end
+    populatePiggyList() 
+end)
+
+-- [TOGGLE / STATE LOGIC (Fly, Noclip, Aimbot, ESP, Tag, AFK, Ragebait)]
+local tagEnabled, antiAfkEnabled, flying, noclipEnabled, AimEnabled, espEnabled = false, false, false, false, false, false
+local ragebaitEnabled = false
+local flyParts, espConnections = {}, {}
+local flyConnection
+local keys = {W = false, A = false, S = false, D = false}
+
+-- Ragebait Mode (Teleport + Clicker)
+local function performRagebaitClick()
+    local camera = workspace.CurrentCamera
+    local screenCenter = camera.ViewportSize / 2
+    VIM:SendMouseButtonEvent(screenCenter.X, screenCenter.Y, 0, true, game, 0)
+    task.wait(0.01)
+    VIM:SendMouseButtonEvent(screenCenter.X, screenCenter.Y, 0, false, game, 0)
+end
+
+local function cycleRagebaitPlayers()
+    local myCharacter = LocalPlayer.Character
+    local myRoot = myCharacter and myCharacter:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+
+    local allPlayers = Players:GetPlayers()
+    for _, player in ipairs(allPlayers) do
+        if not ragebaitEnabled then break end
+        if player ~= LocalPlayer then
+            local targetCharacter = player.Character
+            local targetRoot = targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart")
+            if targetRoot then
+                -- Teleport behind the target
+                myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 3)
+                task.wait(0.02)
+                performRagebaitClick()
+                performRagebaitClick()
+                performRagebaitClick()
+                task.wait(0.25)
+            end
+        end
+    end
+end
+
+BtnRagebait.MouseButton1Click:Connect(function()
+    playClick()
+    ragebaitEnabled = not ragebaitEnabled
+    if ragebaitEnabled then
+        TweenService:Create(RagebaitStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+        task.spawn(function()
+            while ragebaitEnabled do
+                cycleRagebaitPlayers()
+                task.wait(0.1)
+            end
+        end)
+    else
+        TweenService:Create(RagebaitStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+    end
+end)
+
+-- Tag
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        if not tagEnabled then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        local head = char:FindFirstChild("Head")
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None end
+        for _, obj in ipairs(char:GetDescendants()) do if obj:IsA("BillboardGui") and obj.Name ~= "VerifiedTag" then obj.Enabled = false end end
+        if not head then return end
+        local tag = head:FindFirstChild("VerifiedTag")
+        if not tag then
+            tag = Instance.new("BillboardGui")
+            tag.Name = "VerifiedTag"; tag.Size = UDim2.new(0, 100, 0, 30); tag.StudsOffset = Vector3.new(0, 2.5, 0)
+            tag.AlwaysOnTop = true
+            local lbl = Instance.new("TextLabel", tag)
+            lbl.Name = "TagLabel"; lbl.Size = UDim2.new(1, 0, 1, 0); lbl.BackgroundTransparency = 1
+            lbl.TextColor3 = Color3.new(1, 1, 1)
+            lbl.TextStrokeTransparency = 0; lbl.TextSize = 14; lbl.Font = Enum.Font.GothamBold
+            tag.Parent = head
+        end
+        tag.TagLabel.Text = CurrentTagName .. VERIFIED_BADGE_CHAR
+    end)
+end)
+
+BtnTag.MouseButton1Click:Connect(function()
+    playClick()
+    tagEnabled = not tagEnabled
+    if tagEnabled then
+        TweenService:Create(TagStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+    else
+        TweenService:Create(TagStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("Head") then
+                local t = char.Head:FindFirstChild("VerifiedTag"); if t then t:Destroy() end
+            end
+            if char and char:FindFirstChildOfClass("Humanoid") then char:FindFirstChildOfClass("Humanoid").DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer end
+            if char then for _, obj in ipairs(char:GetDescendants()) do if obj:IsA("BillboardGui") then obj.Enabled = true end end end
+        end)
+    end
+end)
+
+-- AFK
+LocalPlayer.Idled:Connect(function()
+    pcall(function()
+        if antiAfkEnabled and VirtualUser then
+            VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            task.wait(0.1)
+            VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        end
+    end)
+end)
+
+BtnAfk.MouseButton1Click:Connect(function()
+    playClick()
+    antiAfkEnabled = not antiAfkEnabled
+    if antiAfkEnabled then
+        TweenService:Create(AfkStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play() 
+        task.spawn(function()
+            while antiAfkEnabled do
+                task.wait(5)
+                pcall(function()
+                    if antiAfkEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+                        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                end)
+            end
+        end)
+    else
+        TweenService:Create(AfkStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play() 
+    end
+end)
+
+-- Fly
+local function cleanupFly()
+    for _, part in pairs(flyParts) do if part and part.Parent then part:Destroy() end end
+    table.clear(flyParts)
+    if flyConnection then flyConnection:Disconnect() end
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.PlatformStand = false end
+    end
+end
+
+local function toggleFly()
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    flying = not flying
+
+    if flying then
+        TweenService:Create(FlyStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+        if hum then hum.PlatformStand = true end
+
+        local bg = Instance.new("BodyGyro")
+        bg.P = 9e4; bg.maxTorque = Vector3.new(9e9, 9e9, 9e9); bg.cframe = hrp.CFrame; bg.Parent = hrp
+        local bv = Instance.new("BodyVelocity")
+        bv.velocity = Vector3.zero; bv.maxForce = Vector3.new(9e9, 9e9, 9e9); bv.Parent = hrp
+
+        table.insert(flyParts, bg); table.insert(flyParts, bv)
+
+        flyConnection = RunService.RenderStepped:Connect(function()
+            local moveDir = Vector3.zero
+            local cameraCFrame = Camera.CFrame
+            if keys.W then moveDir += cameraCFrame.LookVector end
+            if keys.S then moveDir -= cameraCFrame.LookVector end
+            if keys.A then moveDir -= cameraCFrame.RightVector end
+            if keys.D then moveDir += cameraCFrame.RightVector end
+            if moveDir.Magnitude > 0 then moveDir = moveDir.Unit end
+
+            bv.velocity = moveDir * FLY_SPEED
+            bg.cframe = cameraCFrame
+        end)
+    else
+        TweenService:Create(FlyStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+        cleanupFly()
+    end
+end
+
+BtnFly.MouseButton1Click:Connect(function() playClick(); toggleFly() end)
+
+-- Noclip
+BtnNoclip.MouseButton1Click:Connect(function()
+    playClick()
+    noclipEnabled = not noclipEnabled
+    if noclipEnabled then
+        TweenService:Create(NoclipStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+    else
+        TweenService:Create(NoclipStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    pcall(function()
+        if noclipEnabled and LocalPlayer.Character then
+            for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") and v.CanCollide then v.CanCollide = false end
+            end
+        end
+    end)
+end)
+
+-- Aimbot
+local function getClosestPlayer()
+    local target = nil
+    local shortestDistance = math.huge
+    pcall(function()
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(AIMBOT_PART) and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                local pos, onScreen = Camera:WorldToViewportPoint(player.Character[AIMBOT_PART].Position)
+                if onScreen then
+                    local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(PlayerMouse.X, PlayerMouse.Y)).Magnitude
+                    if distance < shortestDistance then target = player.Character[AIMBOT_PART]
+                        shortestDistance = distance end
+                end
+            end
+        end
+    end)
+    return target
+end
+
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        if AimEnabled then
+            local target = getClosestPlayer()
+            if target then
+                local lookVector = CFrame.new(Camera.CFrame.Position, target.Position)
+                Camera.CFrame = Camera.CFrame:Lerp(lookVector, AIMBOT_SENSITIVITY)
+            end
+        end
+    end)
+end)
+
+local function toggleAimbot()
+    AimEnabled = not AimEnabled
+    if AimEnabled then TweenService:Create(AimbotStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+    else TweenService:Create(AimbotStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play() end
+end
+BtnAimbot.MouseButton1Click:Connect(function() playClick(); toggleAimbot() end)
+
+-- ESP
+local function addESP(targetPlayer)
+    if targetPlayer == LocalPlayer then return end
+    local highlight = Instance.new("Highlight")
+    highlight.Name = targetPlayer.Name .. "_Chams"
+    highlight.FillColor = Color3.fromRGB(255, 50, 50); highlight.FillTransparency = 0.5; highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    local espGui = Instance.new("BillboardGui")
+    espGui.Name = targetPlayer.Name .. "_Tag"
+    espGui.AlwaysOnTop = true; espGui.Size = UDim2.new(0, 200, 0, 50); espGui.StudsOffset = Vector3.new(0, 3.5, 0)
+    local textLabel = Instance.new("TextLabel", espGui)
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1; textLabel.TextColor3 = Color3.fromRGB(255, 255, 255); textLabel.TextStrokeTransparency = 0; textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextSize = 13
+
+    local conn
+    conn = RunService.RenderStepped:Connect(function()
+        if not espEnabled or not targetPlayer.Parent then
+            highlight:Destroy(); espGui:Destroy(); conn:Disconnect(); return
+        end
+        local targetChar = targetPlayer.Character
+        local myChar = LocalPlayer.Character
+        if targetChar and targetChar:FindFirstChild("HumanoidRootPart") and targetChar:FindFirstChild("Humanoid") and targetChar.Humanoid.Health > 0 then
+            if highlight.Parent ~= targetChar then highlight.Parent = targetChar end
+            if espGui.Parent ~= targetChar.HumanoidRootPart then espGui.Parent = targetChar.HumanoidRootPart end
+            if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                local dist = math.floor((myChar.HumanoidRootPart.Position - targetChar.HumanoidRootPart.Position).Magnitude)
+                textLabel.Text = targetPlayer.DisplayName .. "\n[" .. dist .. "m]"
+            end
+        else
+            highlight.Parent = nil; espGui.Parent = nil
+        end
+    end)
+    table.insert(espConnections, conn)
+end
+
+BtnESP.MouseButton1Click:Connect(function()
+    playClick()
+    espEnabled = not espEnabled
+    if espEnabled then
+        TweenService:Create(ESPStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+        for _, player in pairs(Players:GetPlayers()) do addESP(player) end
+        espConnections["PlayerAdded"] = Players.PlayerAdded:Connect(addESP)
+    else
+        TweenService:Create(ESPStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+        if espConnections["PlayerAdded"] then espConnections["PlayerAdded"]:Disconnect(); espConnections["PlayerAdded"] = nil end
+    end
+end)
+
+
+-- ////////////////////////////////////////////
+-- /// 4. FAKE PURCHASE PROMPT (UNTOUCHED)  ///
+-- ////////////////////////////////////////////
+
+local PromptGui = Instance.new("ScreenGui", guiParent)
+PromptGui.Name = "FakePrompt"; PromptGui.ResetOnSpawn = false; PromptGui.Enabled = false; PromptGui.DisplayOrder = 999999999 
+
+local BackgroundDim = Instance.new("Frame", PromptGui)
+BackgroundDim.Size = UDim2.new(1, 0, 1, 0); BackgroundDim.BackgroundColor3 = Color3.new(0,0,0); BackgroundDim.BackgroundTransparency = 1; BackgroundDim.BorderSizePixel = 0
+
+local PromptMainFrame = Instance.new("CanvasGroup", PromptGui)
+PromptMainFrame.Size = UDim2.new(0, 456, 0, 230); PromptMainFrame.Position = UDim2.new(0.5, -228, 0.5, -140)
+PromptMainFrame.BackgroundColor3 = Color3.fromRGB(25, 26, 31); PromptMainFrame.BorderSizePixel = 0; PromptMainFrame.GroupTransparency = 1
+Instance.new("UICorner", PromptMainFrame).CornerRadius = UDim.new(0, 10)
+
+local PromptTitle = Instance.new("TextLabel", PromptMainFrame)
+PromptTitle.Text = "Buy item"; PromptTitle.Font = Enum.Font.GothamBold; PromptTitle.TextSize = 22; PromptTitle.TextColor3 = Color3.new(1,1,1); PromptTitle.BackgroundTransparency = 1; PromptTitle.Position = UDim2.new(0, 25, 0, 15); PromptTitle.Size = UDim2.new(0, 150, 0, 30); PromptTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local PromptCloseBtn = Instance.new("ImageButton", PromptMainFrame)
+PromptCloseBtn.Image = "rbxassetid://6031094678"; PromptCloseBtn.BackgroundTransparency = 1; PromptCloseBtn.Position = UDim2.new(1, -42, 0, 22); PromptCloseBtn.Size = UDim2.new(0, 18, 0, 18)
+
+local BalanceLabel = Instance.new("TextLabel", PromptMainFrame)
+BalanceLabel.Text = " " .. formatBalance(CURRENT_BALANCE); BalanceLabel.Font = Enum.Font.GothamMedium; BalanceLabel.TextSize = 16; BalanceLabel.TextColor3 = Color3.new(1,1,1); BalanceLabel.BackgroundTransparency = 1; BalanceLabel.Position = UDim2.new(1, -165, 0, 18); BalanceLabel.Size = UDim2.new(0, 110, 0, 25); BalanceLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+local ItemImage = Instance.new("ImageLabel", PromptMainFrame)
+ItemImage.BackgroundColor3 = Color3.fromRGB(0, 0, 0); ItemImage.Position = UDim2.new(0, 25, 0, 62); ItemImage.Size = UDim2.new(0, 82, 0, 82)
+ItemImage.Image = "rbxthumb://type=Asset&id=127213762957880&w=150&h=150"; Instance.new("UICorner", ItemImage).CornerRadius = UDim.new(0, 8)
+
+local ItemNameLabel = Instance.new("TextLabel", PromptMainFrame)
+ItemNameLabel.Font = Enum.Font.GothamBold; ItemNameLabel.TextSize = 16; ItemNameLabel.TextColor3 = Color3.new(1,1,1); ItemNameLabel.BackgroundTransparency = 1; ItemNameLabel.Position = UDim2.new(0, 115, 0, 68); ItemNameLabel.Size = UDim2.new(0, 310, 0, 20); ItemNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local PriceLabel = Instance.new("TextLabel", PromptMainFrame)
+PriceLabel.Font = Enum.Font.GothamMedium; PriceLabel.TextSize = 17; PriceLabel.TextColor3 = Color3.new(1,1,1); PriceLabel.BackgroundTransparency = 1; PriceLabel.Position = UDim2.new(0, 115, 0, 98); PriceLabel.Size = UDim2.new(0, 100, 0, 20); PriceLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local BuyButton = Instance.new("TextButton", PromptMainFrame)
+BuyButton.Text = ""; BuyButton.BackgroundColor3 = Color3.fromRGB(35, 60, 150) 
+BuyButton.Position = UDim2.new(0, 25, 1, -75); BuyButton.Size = UDim2.new(1, -50, 0, 44); BuyButton.AutoButtonColor = false; BuyButton.ClipsDescendants = true; Instance.new("UICorner", BuyButton).CornerRadius = UDim.new(0, 8)
+
+local LoadingBar = Instance.new("Frame", BuyButton)
+LoadingBar.BackgroundColor3 = Color3.fromRGB(0, 162, 255); LoadingBar.Size = UDim2.new(0, 0, 1, 0); LoadingBar.BorderSizePixel = 0
+local ButtonText = Instance.new("TextLabel", BuyButton)
+ButtonText.Text = "Buy"; ButtonText.Font = Enum.Font.GothamBold; ButtonText.TextSize = 19; ButtonText.TextColor3 = Color3.new(1,1,1); ButtonText.BackgroundTransparency = 1; ButtonText.Size = UDim2.new(1, 0, 1, 0); ButtonText.ZIndex = 5
+
+local SuccessFrame = Instance.new("CanvasGroup", PromptGui)
+SuccessFrame.Size = UDim2.new(0, 456, 0, 230); SuccessFrame.BackgroundColor3 = Color3.fromRGB(25, 26, 31); SuccessFrame.BorderSizePixel = 0; SuccessFrame.GroupTransparency = 1; SuccessFrame.Visible = false; Instance.new("UICorner", SuccessFrame).CornerRadius = UDim.new(0, 10)
+
+local SuccessTitle = Instance.new("TextLabel", SuccessFrame)
+SuccessTitle.Text = "Purchase completed"; SuccessTitle.Font = Enum.Font.GothamBold; SuccessTitle.TextSize = 18; SuccessTitle.TextColor3 = Color3.new(1,1,1); SuccessTitle.BackgroundTransparency = 1; SuccessTitle.Position = UDim2.new(0, 25, 0, 18); SuccessTitle.Size = UDim2.new(0, 200, 0, 25); SuccessTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local SuccessCloseBtn = Instance.new("ImageButton", SuccessFrame)
+SuccessCloseBtn.Image = "rbxassetid://6031094678"; SuccessCloseBtn.BackgroundTransparency = 1; SuccessCloseBtn.Position = UDim2.new(1, -42, 0, 22); SuccessCloseBtn.Size = UDim2.new(0, 18, 0, 18)
+
+local Checkmark = Instance.new("ImageLabel", SuccessFrame)
+Checkmark.Image = "rbxthumb://type=Asset&id=102009555188722&w=150&h=150"; Checkmark.BackgroundTransparency = 1; Checkmark.Position = UDim2.new(0.5, -25, 0, 50); Checkmark.Size = UDim2.new(0, 50, 0, 50)
+
+local SuccessMsg = Instance.new("TextLabel", SuccessFrame)
+SuccessMsg.Font = Enum.Font.GothamMedium; SuccessMsg.TextSize = 16; SuccessMsg.TextColor3 = Color3.fromRGB(220, 220, 220); SuccessMsg.BackgroundTransparency = 1; SuccessMsg.Position = UDim2.new(0, 0, 0, 110); SuccessMsg.Size = UDim2.new(1, 0, 0, 20); SuccessMsg.TextXAlignment = Enum.TextXAlignment.Center
+
+local OkButton = Instance.new("TextButton", SuccessFrame)
+OkButton.Text = "OK"; OkButton.Font = Enum.Font.GothamBold; OkButton.TextSize = 19; OkButton.TextColor3 = Color3.new(1,1,1); OkButton.BackgroundColor3 = Color3.fromRGB(59, 104, 255); OkButton.Position = UDim2.new(0, 25, 1, -75); OkButton.Size = UDim2.new(1, -50, 0, 44); OkButton.AutoButtonColor = false; Instance.new("UICorner", OkButton).CornerRadius = UDim.new(0, 8)
+
+local canBuy = false
+local function openPromptMenu()
+    if PromptGui.Enabled then return end
+    SuccessFrame.Position = UDim2.new(0.5, -228, 0.5, -140)
+    PromptMainFrame.Visible = true; SuccessFrame.Visible = false; SuccessFrame.GroupTransparency = 1
+    ItemNameLabel.Text = ITEM_NAMES[math.random(1, #ITEM_NAMES)]; PriceLabel.Text = " " .. tostring(ITEM_PRICE)
+    PromptGui.Enabled = true
+    TweenService:Create(BackgroundDim, TweenInfo.new(0.3), {BackgroundTransparency = 0.5}):Play()
+    PromptMainFrame.GroupTransparency = 1; PromptMainFrame.Position = UDim2.new(0.5, -228, 0.5, 50)
+    TweenService:Create(PromptMainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -228, 0.5, -140), GroupTransparency = 0}):Play()
+    canBuy = false; LoadingBar.Size = UDim2.new(0, 0, 1, 0)
+    TweenService:Create(LoadingBar, TweenInfo.new(LOAD_TIME, Enum.EasingStyle.Linear), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+    task.delay(LOAD_TIME, function() canBuy = true end)
+end
+
+local function closePromptMenu()
+    TweenService:Create(BackgroundDim, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+    local t1 = TweenService:Create(PromptMainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -228, 0.5, 100), GroupTransparency = 1})
+    local t2 = TweenService:Create(SuccessFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -228, 0.5, 100), GroupTransparency = 1})
+    t1:Play(); t2:Play()
+    t1.Completed:Connect(function() PromptGui.Enabled = false end)
+end
+
+BuyButton.MouseButton1Click:Connect(function()
+    if canBuy then
+        playClick()
+        CURRENT_BALANCE = CURRENT_BALANCE - ITEM_PRICE; BalanceLabel.Text = " " .. formatBalance(CURRENT_BALANCE)
+        SuccessMsg.Text = "You have successfully bought " .. ItemNameLabel.Text .. "."
+        SuccessFrame.Position = UDim2.new(0.5, -228, 0.5, -140)
+        TweenService:Create(PromptMainFrame, TweenInfo.new(0.15), {GroupTransparency = 1}):Play()
+        task.delay(0.15, function()
+            PromptMainFrame.Visible = false; SuccessFrame.Visible = true
+            TweenService:Create(SuccessFrame, TweenInfo.new(0.2), {GroupTransparency = 0}):Play()
+        end)
+    end
+end)
+
+PromptCloseBtn.MouseButton1Click:Connect(function() playClick(); closePromptMenu() end)
+SuccessCloseBtn.MouseButton1Click:Connect(function() playClick(); closePromptMenu() end)
+OkButton.MouseButton1Click:Connect(function() playClick(); closePromptMenu() end)
+pcall(function() MarketplaceService.PromptGamePassPurchaseRequested:Connect(openPromptMenu) end)
+BtnPrompt.MouseButton1Click:Connect(function() playClick(); if PromptGui.Enabled then closePromptMenu() else openPromptMenu() end end)
+
+
+-- ////////////////////////////////////////////
+-- /// GLOBAL KEYBINDS & RESPAWN MANAGER    ///
+-- ////////////////////////////////////////////
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == MENU_TOGGLE_KEY and isAuthenticated then MainContainer.Visible = not MainContainer.Visible end
+    if input.KeyCode == PROMPT_TOGGLE_KEY and isAuthenticated then if PromptGui.Enabled then closePromptMenu() else openPromptMenu() end end
+    if input.KeyCode == AIMBOT_TOGGLE_KEY and isAuthenticated then toggleAimbot() end
+    if input.KeyCode == Enum.KeyCode.G and isAuthenticated then toggleFly() end 
+    if input.KeyCode == Enum.KeyCode.W then keys.W = true end
+    if input.KeyCode == Enum.KeyCode.A then keys.A = true end
+    if input.KeyCode == Enum.KeyCode.S then keys.S = true end
+    if input.KeyCode == Enum.KeyCode.D then keys.D = true end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.W then keys.W = false end
+    if input.KeyCode == Enum.KeyCode.A then keys.A = false end
+    if input.KeyCode == Enum.KeyCode.S then keys.S = false end
+    if input.KeyCode == Enum.KeyCode.D then keys.D = false end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    -- Reset Movement Mods
+    flying = false
+    TweenService:Create(FlyStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+    cleanupFly()
+    
+    if noclipEnabled then
+        noclipEnabled = false
+        TweenService:Create(NoclipStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+    end
+    
+    if ragebaitEnabled then
+        ragebaitEnabled = false
+        TweenService:Create(RagebaitStatus, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+    end
+
+    -- Re-apply Speed Lock if enabled
+    if isSpeedLocked then applySpeedLock(char) end
+
+    -- Re-apply Outfit / Headless Mods
+    cacheDefaultAnimations(char)
+    if cloneActive then
+        applySavedOutfit(char)
+    elseif headlessEnabled then
+        applyHeadState(char)
+    end
+end)
+
+if LocalPlayer.Character then
+    cacheDefaultAnimations(LocalPlayer.Character)
+end
+
+
+-- ////////////////////////////////////////////
+-- /// CUSTOM FOV SLIDER UI                 ///
+-- ////////////////////////////////////////////
+
+print("--- 🔭 INJECTING FOV SLIDER ---")
+
+-- 1. CLEANUP (Removes old slider if you re-run the script)
+if guiParent:FindFirstChild("AlexionFOVGui") then
+    guiParent.AlexionFOVGui:Destroy()
+end
+
+-- 2. CREATE THE GUI
+local FovGui = Instance.new("ScreenGui")
+FovGui.Name = "AlexionFOVGui"
+FovGui.ResetOnSpawn = false
+FovGui.Parent = guiParent
+
+-- Main Background Frame
+local fovFrame = Instance.new("Frame")
+fovFrame.Size = UDim2.new(0, 300, 0, 80)
+fovFrame.Position = UDim2.new(0.5, -150, 0.85, 0) -- Bottom center of screen
+fovFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+fovFrame.BorderSizePixel = 0
+fovFrame.Parent = FovGui
+
+local fovCorner = Instance.new("UICorner")
+fovCorner.CornerRadius = UDim.new(0, 8)
+fovCorner.Parent = fovFrame
+
+-- Title / Value Text
+local fovLabel = Instance.new("TextLabel")
+fovLabel.Size = UDim2.new(1, 0, 0, 30)
+fovLabel.Position = UDim2.new(0, 0, 0, 5)
+fovLabel.BackgroundTransparency = 1
+fovLabel.Text = "FOV: 70"
+fovLabel.TextColor3 = Color3.fromRGB(255, 50, 50) -- Hacker Red to match the vibe
+fovLabel.Font = Enum.Font.GothamBold
+fovLabel.TextSize = 16
+fovLabel.Parent = fovFrame
+
+-- Slider Background Track
+local fovTrack = Instance.new("TextButton")
+fovTrack.Size = UDim2.new(0, 260, 0, 10)
+fovTrack.Position = UDim2.new(0.5, -130, 0.6, 0)
+fovTrack.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+fovTrack.Text = ""
+fovTrack.AutoButtonColor = false
+fovTrack.Parent = fovFrame
+
+local fovTrackCorner = Instance.new("UICorner")
+fovTrackCorner.CornerRadius = UDim.new(1, 0)
+fovTrackCorner.Parent = fovTrack
+
+-- Slider Fill (The colored part)
+local fovFill = Instance.new("Frame")
+fovFill.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+fovFill.Size = UDim2.new(0.5, 0, 1, 0)
+fovFill.Parent = fovTrack
+
+local fovFillCorner = Instance.new("UICorner")
+fovFillCorner.CornerRadius = UDim.new(1, 0)
+fovFillCorner.Parent = fovFill
+
+-- Slider Knob
+local fovKnob = Instance.new("Frame")
+fovKnob.Size = UDim2.new(0, 20, 0, 20)
+fovKnob.Position = UDim2.new(0.5, -10, 0.5, -10)
+fovKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+fovKnob.Parent = fovTrack
+
+local fovKnobCorner = Instance.new("UICorner")
+fovKnobCorner.CornerRadius = UDim.new(1, 0)
+fovKnobCorner.Parent = fovKnob
+
+-- Close Button
+local fovCloseBtn = Instance.new("TextButton")
+fovCloseBtn.Size = UDim2.new(0, 20, 0, 20)
+fovCloseBtn.Position = UDim2.new(1, -25, 0, 5)
+fovCloseBtn.BackgroundTransparency = 1
+fovCloseBtn.Text = "X"
+fovCloseBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+fovCloseBtn.Font = Enum.Font.GothamBold
+fovCloseBtn.TextSize = 14
+fovCloseBtn.Parent = fovFrame
+
+-- 3. SLIDER MATH & LOGIC
+local minFov = 10  -- Max Zoom In
+local maxFov = 120 -- Max Quake Pro Zoom Out
+local fovDragging = false
+
+local function updateFovSlider(input)
+    -- Calculate where the mouse is on the slider (0.0 to 1.0)
+    local pos = math.clamp((input.Position.X - fovTrack.AbsolutePosition.X) / fovTrack.AbsoluteSize.X, 0, 1)
+    
+    -- Move UI elements visually
+    fovFill.Size = UDim2.new(pos, 0, 1, 0)
+    fovKnob.Position = UDim2.new(pos, -10, 0.5, -10)
+    
+    -- Calculate and set actual FOV
+    local currentFov = math.floor(minFov + ((maxFov - minFov) * pos))
+    fovLabel.Text = "FOV: " .. tostring(currentFov)
+    Camera.FieldOfView = currentFov
+end
+
+-- Mouse Click Logic
+fovTrack.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        fovDragging = true
+        updateFovSlider(input)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        fovDragging = false
+    end
+end)
+
+-- Mouse Drag Logic
+UserInputService.InputChanged:Connect(function(input)
+    if fovDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        updateFovSlider(input)
+    end
+end)
+
+-- Set Initial Default State (70 FOV)
+local initialFovPos = (70 - minFov) / (maxFov - minFov)
+fovFill.Size = UDim2.new(initialFovPos, 0, 1, 0)
+fovKnob.Position = UDim2.new(initialFovPos, -10, 0.5, -10)
+Camera.FieldOfView = 70
+
+-- Close Button Logic
+fovCloseBtn.MouseButton1Click:Connect(function()
+    FovGui:Destroy()
+end)
+
+print("--- ✅ UI LOADED. DRAG TO ZOOM. ---")
+
+
+-- ////////////////////////////////////////////
+-- /// SYSTEM LOAD COMPLETE                 ///
+-- ////////////////////////////////////////////
+print("--- 🏔️ Alexion Client Premium v3 LOADED ---")
